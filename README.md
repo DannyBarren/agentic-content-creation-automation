@@ -1,157 +1,101 @@
 # AI Money Machines Content Crew
 
-Production-ready **CrewAI** project that automates a full content pipeline for the niche: **AI Tools for Making Money** / Personal Finance + AI Side Hustles (faceless YouTube, Reels, TikTok).
+This repository contains an automated content generation system built with CrewAI and Python, designed for creators producing faceless videos in high-engagement niches like AI tools for making money and personal finance side hustles. It's tailored for platforms such as YouTube Shorts, Instagram Reels, and TikTok, where short-form content can drive significant revenue through ad RPMs, affiliates, and viewer retention.
 
-## What It Does
+The system generates 7 short-form video packs per run, including detailed scripts with actionable how-tos, visuals prompts for AI video tools, and optimized SEO. It's built to ensure uniqueness, scalability, and monetization potential, helping creators produce consistent output that scales to $5k–$20k/month as algorithms reward quality and volume.
 
-Each run generates **7 short-form video pairs** (script + visuals prompt) in separate folders:
+## What This System Does (And Why It's Built This Way)
 
-1. **Trend research** → 7 short-form video ideas (30–60s angle, with search).
-2. **Scripts** → For each idea: one short-form script (500–800 words, dense for 30–60s at ~150 wpm): exhaustive step-by-step how-tos (5–10 steps per tool), expanded examples/case studies (names/dates/earnings), pro tips, common mistakes/pitfalls, variations for beginners/advanced, earnings breakdowns, tool comparisons, affiliate CTA, outro. Optimized for engagement and payouts.
-3. **Visuals prompts** → For each script: one unified visuals prompt (500–1,000 words), scene-by-scene with timings, faceless cartoons/realism, copy-paste ready for Runway/Kling/ComfyUI/LTX-2.3 (4K, 30–60s).
-4. **SEO** → Per video: basic title, description, tags, thumbnail prompt (appended to each `script.md` for easy posting).
+This CrewAI pipeline automates the creation of faceless AI content, from idea generation to ready-to-use assets. Run a single command (`python main.py`) to produce 7 complete short-form video packages. It's optimized for niches like AI-driven income strategies—think ChatGPT side hustles or Canva for passive revenue—where finance and tech topics yield strong RPMs ($9–$21 per 1,000 views) and affiliate opportunities (e.g., ClickBank or Amazon links).
 
-Output is saved as `outputs/YYYY-MM-DD_video1/` … `outputs/YYYY-MM-DD_video7/`, each with `script.md` and `visuals_prompt.md`. No long-form scripts or audio prompts—short-form only.
+Each run delivers:
+- A scan of existing outputs to prevent topic repetition.
+- Research into web and X trends for 7 unique video ideas.
+- 7 detailed scripts (500–800 words each, packed with step-by-step instructions, examples, tips, pitfalls, and CTAs drawn from real-world sources).
+- 7 visuals prompts (500–1,000 words, structured scene-by-scene for tools like Runway or Kling, supporting faceless cartoons or realistic styles).
+- SEO elements for each video (title, description, tags, and thumbnail prompt).
 
-## Setup
+Outputs are organized into dated, numbered folders (e.g., `outputs/2026-03-15_video8/`), with `script.md` (script + SEO) and `visuals_prompt.md`. Folder numbering continues sequentially across runs, simplifying library management.
 
-### 1. Environment
+The sequential design leverages CrewAI's strength in task chaining, where each step builds on the previous with built-in memory for consistency. This ensures reliable, high-quality results without unnecessary complexity. Scripts emphasize value for retention, with lengths optimized for monetization thresholds (60 seconds+ for TikTok rewards, 30–60 seconds for Instagram bonuses, and YouTube Shorts eligibility).
 
-**Conda (recommended):**
+## Features That Make It Effective for Creators
 
-```bash
-conda create -n ai-money-crew python=3.11 -y
-conda activate ai-money-crew
-```
+- **Batch Efficiency**: Produces 7 videos per run, enabling daily or weekly execution to build a content backlog quickly and achieve platform monetization milestones in 3–6 months.
+- **Content Uniqueness**: Automatically scans past scripts to summarize and avoid repeated topics, keeping your output fresh and algorithm-friendly.
+- **Research Depth**: Agents use web and X searches (via DuckDuckGo) to incorporate real tutorials, case studies, and earnings examples, resulting in scripts with practical steps like "Log into ChatGPT, use prompt 'X' for Y—here's how it generated $500/month for one user."
+- **Monetization Focus**: Scripts include hooks, affiliate CTAs, pro tips, and pitfalls to drive engagement; visuals prompts support dynamic 4K faceless content for better viewer retention.
+- **Sequential Organization**: Scans the `outputs/` directory to resume numbering from the last video, avoiding overwrites and streamlining workflows.
+- **Ready-to-Use Outputs**: Clean Markdown files for easy integration—paste scripts into ElevenLabs for narration or prompts into Kling for video generation.
+- **Customization Options**: Adjust niche keywords, LLM models, or script parameters in `src/crew.py` to fit other topics like psychology facts or business documentaries.
 
-**Or use venv:**
+This tool is ideal for content creators seeking to automate production while maintaining quality, allowing more time for posting, analytics, and scaling revenue streams.
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-# source .venv/bin/activate  # macOS/Linux
-```
+## How It Works Under the Hood
 
-### 2. Install dependencies
+### Architecture
+- **Core Framework**: CrewAI handles multi-agent orchestration with a sequential process—tasks execute in order, each accessing prior outputs via `context=[...]`. Shared memory (`memory=True`) enables reuse of information, such as avoided topics.
+- **LLM Integration**: Powered by OpenAI (default gpt-4o-mini; configurable to gpt-4o in `.env`). Temperature set to 0.8 for balanced creativity in detail generation.
+- **Tools**: DuckDuckGo-based searches for web and X data (no additional API keys required). A custom `ScanOutputsTool` scans `outputs/` for script files and summarizes topics.
+- **Technology Stack**: Python 3.11+, crewai, langchain-openai, duckduckgo-search, python-dotenv, and crewai-tools. Minimal dependencies for reliability.
 
-```bash
-pip install -r requirements.txt
-```
+### Execution Flow
+1. **Initialization in `main.py`**:
+   - Loads `.env` (requires OPENAI_API_KEY).
+   - Ensures `outputs/` exists.
+   - Scans subfolders using `get_start_video_number()`: Extracts numbers via regex (e.g., from `video8/`), determines the next starting point (defaults to 1 if empty).
+   - Displays the batch range (e.g., "Generating video8 to video14").
 
-### 3. API key
+2. **Crew Execution**:
+   - `create_crew()` in `src/crew.py` assembles 5 agents and 5 tasks.
+   - `Crew(...).kickoff()` processes sequentially: Memory scan → Idea generation → Script writing → Visuals prompts → SEO.
 
-Copy the example env and add your OpenAI key:
+3. **Agents Overview**
+   - **Memory Manager**: Uses a custom tool to scan `outputs/` for `script.md` files, summarizing topics (first 1–2 sentences, excluding headers/SEO). Also reports the maximum video number. Output includes topics to avoid for uniqueness.
+   - **Trend Researcher**: Employs search tools, incorporating memory context to produce 7 distinct ideas (title, hook, angle, rationale based on current trends).
+   - **Script Writer**: Conducts additional searches for in-depth how-tos, generating 7 blocks under headers like `## VIDEO 1`, each 500–800 words with practical details.
+   - **Visuals Prompt Engineer**: Draws from scripts to create 7 scene-by-scene prompts, without additional tools.
+   - **SEO Specialist**: Produces title, description, tags, and thumbnail prompt for each video.
 
-```bash
-copy .env.example .env   # Windows
-# cp .env.example .env   # macOS/Linux
-```
+4. **Post-Processing**:
+   - Parses raw outputs with `split_video_blocks()`: Divides content based on `## VIDEO N` headers into 7 segments.
+   - Creates folders like `outputs/{date}_video{start + i}/`, writing `script.md` (header + script + SEO) and `visuals_prompt.md` (header + prompt).
+   - Validates script word counts, issuing console warnings if below 500 to maintain substance.
 
-Edit `.env` and set:
+The memory scan integrates with numbering: The tool provides the max N for reference, while `main.py` performs its own scan for folder creation, ensuring accuracy.
 
-```
-OPENAI_API_KEY=sk-your-openai-key-here
-```
+## Setup Instructions
 
-Optional: use a different model (default is `gpt-4o-mini`):
+1. Clone the repository: `git clone [repository-url] && cd ai-money-machines-crew`
+2. Create and activate the environment: `conda create -n ai-crew python=3.11 -y && conda activate ai-crew`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Configure `.env`: Copy `.env.example` and add `OPENAI_API_KEY=sk-...` (obtain from OpenAI). Optionally set `OPENAI_MODEL_NAME=gpt-4o` for enhanced performance.
+5. Execute: `python main.py`
 
-```
-OPENAI_MODEL_NAME=gpt-4o
-```
+The first run begins at video1, with outputs stored in `outputs/`. Files are formatted for direct use in downstream tools.
 
-## How to Run
+## Usage Guidelines for Creators
 
-From the project root:
+- Execute regularly: Generate content daily or weekly to accumulate a library, posting 3–5 videos per week to reach monetization thresholds in 1–3 months (e.g., 1,000 subscribers and 4,000 watch hours on YouTube).
+- Customize as needed: Modify `NICHE_KEYWORDS` in `crew.py` for alternative niches, or adjust word counts for varied script lengths.
+- Production Workflow: Transfer scripts to ElevenLabs for audio generation, visuals prompts to Kling for clips, and combine in CapCut. Incorporate affiliates in CTAs for additional revenue.
+- Optimization Tip: Analyze performance and refine future runs by incorporating successful elements as examples in prompts.
+- Estimated Costs: Approximately $0.025 per run using gpt-4o-mini; video generation adds $0.50–$2 per batch via tools like Kling.
 
-```bash
-python main.py
-```
+## Configuration Options
 
-The crew runs sequentially with memory. Output is saved to **7 subfolders**:
+- `src/crew.py`:
+  - `NICHE_KEYWORDS`: Define search terms, such as "AI tools for making money".
+  - `DEFAULT_LLM_MODEL`: Specify alternative models.
+  - `SCRIPT_CONFIG`: Control parameters like num_videos=7 and min_script_words=500.
+- `.env`: Manage API keys and model overrides.
 
-```
-outputs/YYYY-MM-DD_video1/
-  script.md         # Short-form script (500–800 words) + SEO
-  visuals_prompt.md # Unified visuals prompt (500–1,000 words) for Runway/Kling/etc.
-outputs/YYYY-MM-DD_video2/
-  ...
-outputs/YYYY-MM-DD_video7/
-  ...
-```
+## Benefits Over Manual Creation
 
-The `outputs/` folder is created automatically on first run.
+For content creators focused on efficiency, this system eliminates repetitive tasks like research and drafting, allowing emphasis on distribution and audience growth. It's faceless-friendly, scalable, and positioned for revenue through optimized, research-backed output.
 
-## Memory Management
+License: MIT—feel free to use and adapt, with credit appreciated for shared derivatives.
 
-Before generating new ideas, the crew **scans all existing script.md files** under `outputs/` (e.g. `outputs/2026-03-14_video1/script.md`). It extracts a short topic summary from each script and passes this list to the idea and script agents so they can produce **unique, non-overlapping content**. On the first run (no existing scripts), the memory step returns "no existing topics" and the agents generate freely. This keeps each run’s 7 videos distinct from previous runs and avoids duplicate topics.
+Contributions and feedback are welcome to refine this tool for broader creator use.
 
-## Sequential Folder Numbering
-
-Before each run, the project **scans existing `outputs/` subfolders** (e.g. `2026-03-14_video1`, `video7`) to find the highest video number. The next batch of 7 folders starts from the following number (e.g. after video1–video7 exist, the next run creates video8–video14). Folder names include the date by default (e.g. `outputs/2026-03-15_video8/`). If there are no existing video folders, numbering starts at video1.
-
-## Short-Form Batch Generation
-
-Each run now generates **7 short-form video pairs** (script + visuals prompt) in separate folders per run. Each video is 30–60s and optimized for monetization: **TikTok 60s+ payouts**, **Instagram 30–60s bonuses**, **YouTube Shorts Fund** eligibility. Scripts are descriptive and engaging for high retention; visuals prompts are dynamic, viral-style faceless content (Runway/Kling/ComfyUI/LTX-2.3) with scene-by-scene timings that match the script.
-
-## Enhanced Research
-
-Agents now search the **web** and **X (Twitter)** for real tutorials, case studies, and how-tos (e.g. ChatGPT/Canva workflows, earnings proof, step-by-step guides). The idea agent and script agent use these searches to create **substantive, actionable content**: 7 ideas with researched angles, and 7 scripts that include real how-to steps, examples, and implementation tips for better engagement and monetization.
-
-## Improved Scripts
-
-Scripts are now **300–500 words** (still 30–60s when spoken at ~150 wpm) with **in-depth how-tos**, step-by-step instructions, real examples and case studies from web/X searches, tips, potential earnings, and beginner pitfalls. Longer, value-packed scripts boost watch time and retention for TikTok, Instagram, and YouTube Shorts payouts. Run `main.py` to see optional word-count output per script to verify length.
-
-## Further Enhanced Scripts
-
-Scripts are now **500–800 words** with **exhaustive how-tos** (5–10 steps per tool), multiple real examples and case studies (with names/dates/earnings from extended web/X searches), pro tips, common mistakes/pitfalls, variations for beginners vs advanced, potential earnings breakdowns, tool comparisons, and calls to experiment. Deeper, multi-query research per idea produces superior content quality; detailed scripts maximize engagement and watch time for better algo performance and payouts. `main.py` validates word count and prints a warning if any script is below 500 words.
-
-## Customizing the Niche
-
-The niche is hard-coded in `src/crew.py`:
-
-```python
-NICHE_KEYWORDS = "AI Tools for Making Money / Personal Finance + AI Side Hustles (faceless YouTube, Reels, TikTok content)"
-```
-
-Edit `NICHE_KEYWORDS` (and task descriptions in `src/tasks.py` if you want) to lock the crew to a different niche. The same 4 agents and 4 tasks will run; only the focus changes. Config in `src/crew.py`: `SCRIPT_CONFIG` (`num_videos=7`, `short_form_only=True`, `short_word_min`/`short_word_max`).
-
-## Monetization Optimization
-
-Short-form scripts are word-count optimized for 2026 short-form monetization:
-
-- **TikTok:** 60s+ for payouts; scripts target 150–300 words (30–60s at ~150 wpm).
-- **Instagram:** 30–60s for engagement bonuses.
-- **YouTube Shorts:** Eligibility for Shorts Fund; same 30–60s format.
-- **Visuals:** Each video gets a matching unified visuals prompt (500–1,000 words) for dynamic, viral faceless content in 4K.
-
-## Example Output Structure
-
-Each of the 7 folders contains:
-
-- **script.md** — Short-form script only (150–300 words, hook/CTA/outro), then SEO (title, description, tags, thumbnail prompt). Copy-paste ready for ElevenLabs or other narration tools.
-- **visuals_prompt.md** — One unified visuals prompt (500–1,000 words), scene-by-scene with timings. Copy-paste ready for Runway, Kling, ComfyUI, LTX-2.3.
-
-## Project Layout
-
-```
-ai-money-machines-crew/
-├── .env.example
-├── .gitignore
-├── README.md
-├── requirements.txt
-├── main.py              # entry point
-├── src/
-│   ├── __init__.py
-│   ├── agents.py        # 4 agents (trend, short-form script, visuals prompt engineer, SEO)
-│   ├── tasks.py         # 4 tasks; 7 ideas, 7 short-form scripts, 7 visuals prompts, 7 SEO
-│   ├── crew.py          # crew config + assembly
-│   └── tools.py         # DuckDuckGo search
-└── outputs/             # auto-created; outputs saved here
-    └── .gitkeep
-```
-
-## Requirements
-
-- Python 3.10+
-- OpenAI API key (for CrewAI/LLM)
-- DuckDuckGo search is used for trends (no API key)
+- Danny
