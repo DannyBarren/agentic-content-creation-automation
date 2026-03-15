@@ -1,4 +1,4 @@
-# AI Money Machines Content Crew
+# Agentic AI Content Creation Automation Platform - Python/CrewAI/OpenAI/ElevenLabs
 
 This repository contains an automated content generation system built with CrewAI and Python, designed for creators producing faceless videos in high-engagement niches like AI tools for making money and personal finance side hustles. It's tailored for platforms such as YouTube Shorts, Instagram Reels, and TikTok, where short-form content can drive significant revenue through ad RPMs, affiliates, and viewer retention.
 
